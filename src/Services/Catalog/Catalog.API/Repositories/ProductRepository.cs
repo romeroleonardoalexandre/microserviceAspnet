@@ -1,14 +1,18 @@
 ﻿using Catalog.API.Data;
 using Catalog.API.Entities;
 using MongoDB.Driver;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
 
 namespace Catalog.API.Repositories
 {
-    public class ProductsRepository : IProductRepository
+    public class ProductRepository : IProductRepository
     {
         private readonly ICatalogContext _context;
 
-        public ProductsRepository(ICatalogContext context)
+        public ProductRepository(ICatalogContext context)
         {
             _context = context ?? throw new ArgumentNullException(nameof(context));
         }
@@ -19,32 +23,29 @@ namespace Catalog.API.Repositories
                             .Products
                             .Find(p => true)
                             .ToListAsync();
-
         }
-
         public async Task<Product> GetProduct(string id)
         {
             return await _context
-                            .Products
-                            .Find(p => p.Id == id)
-                            .FirstOrDefaultAsync();
-
+                           .Products
+                           .Find(p => p.Id == id)
+                           .FirstOrDefaultAsync();
         }
 
         public async Task<IEnumerable<Product>> GetProductByName(string name)
         {
-            //mongo db driver to create filter
-            FilterDefinition<Product> filter = Builders<Product>.Filter.ElemMatch(p => p.Name, name);
+            FilterDefinition<Product> filter = Builders<Product>.Filter.Eq(p => p.Name, name);
+
             return await _context
                             .Products
                             .Find(filter)
                             .ToListAsync();
         }
 
-        public async Task<IEnumerable<Product>> GetProductByCategoryName(string category)
+        public async Task<IEnumerable<Product>> GetProductByCategoryName(string categoryName)
         {
-            //mongo db driver to create filter
-            FilterDefinition<Product> filter = Builders<Product>.Filter.Eq(p => p.Category, category);
+            FilterDefinition<Product> filter = Builders<Product>.Filter.Eq(p => p.Category, categoryName);
+
             return await _context
                             .Products
                             .Find(filter)
@@ -77,5 +78,6 @@ namespace Catalog.API.Repositories
             return deleteResult.IsAcknowledged
                 && deleteResult.DeletedCount > 0;
         }
+
     }
 }
